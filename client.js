@@ -199,6 +199,9 @@ window.__ModuleLoader__.load({
 .hg-more{margin-left:auto;appearance:none;border:0;background:none;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer;padding:2px 5px;border-radius:6px;}
 .hg-more:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2);}
 .hg-history-strip{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:0 2px 6px;scroll-snap-type:x proximity;}
+.hg-history-strip::-webkit-scrollbar{height:6px;}
+.hg-history-strip::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l1);border-radius:3px;}
+.hg-history-strip::-webkit-scrollbar-track{background:transparent;}
 .hg-history-item{position:relative;flex:none;width:104px;scroll-snap-align:start;}
 .hg-history-open{appearance:none;border:0;background:none;padding:0;width:100%;display:flex;flex-direction:column;gap:4px;text-align:left;color:inherit;font:inherit;cursor:pointer;}
 .hg-history-cover{position:relative;display:block;width:104px;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-2);}
@@ -206,7 +209,8 @@ window.__ModuleLoader__.load({
 .hg-history-open:hover .hg-history-cover{box-shadow:0 0 0 2px var(--dsw-alias-brand-primary);}
 .hg-history-name{font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .hg-history-line{font-size:11px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.hg-history-remove{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:inherit;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.hg-history-remove{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:inherit;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s ease;}
+.hg-history-item:hover .hg-history-remove,.hg-history-remove:focus-visible{opacity:1;}
 .hg-history-remove:hover{background:rgba(0,0,0,.8);}
 .hg-veil .hg-note{color:rgba(255,255,255,.75);max-width:240px;}
 .hg-veil.notice{background:rgba(0,0,0,.6);font-size:13px;line-height:1.5;}
@@ -393,6 +397,9 @@ window.__ModuleLoader__.load({
 
     /** Last drama list, so the door prompt can name one without a round trip. */
     let feedCache = { at: 0, items: [] }
+
+    /** Series blurbs fetched for the feature card, remembered per drama. */
+    const descCache = new Map()
 
     /** The Host's drama list, cached for a minute. */
     async function fetchFeed(force) {
@@ -892,6 +899,29 @@ window.__ModuleLoader__.load({
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [keyword, searchTick])
 
+      // Board rows carry no blurb, so the feature card would be all empty
+      // space: pull the drama's own description once and remember it.
+      const [featuredDesc, setFeaturedDesc] = React.useState(undefined)
+      const featuredId = recommendation?.id
+      React.useEffect(() => {
+        if (!featuredId) return undefined
+        if (descCache.has(featuredId)) {
+          setFeaturedDesc(descCache.get(featuredId))
+          return undefined
+        }
+        let cancelled = false
+        callApi(`/series?id=${encodeURIComponent(featuredId)}`)
+          .then((body) => {
+            const desc = String(body?.series?.description ?? '')
+            descCache.set(featuredId, desc)
+            if (!cancelled) setFeaturedDesc(desc)
+          })
+          .catch(() => {})
+        return () => {
+          cancelled = true
+        }
+      }, [featuredId])
+
       const PAGE = 12
       const searching = query.trim() !== ''
       // The featured drama is already on screen; the grid shows the others.
@@ -1090,7 +1120,9 @@ window.__ModuleLoader__.load({
                     { className: 'hg-feature-copy' },
                     h('b', null, recommendation.title ?? recommendation.id),
                     subtitleOf(recommendation) ? h('span', { className: 'hg-sub' }, subtitleOf(recommendation)) : null,
-                    recommendation.description ? h('span', { className: 'hg-feature-desc' }, recommendation.description) : null,
+                    (recommendation.description || featuredDesc)
+                      ? h('span', { className: 'hg-feature-desc' }, recommendation.description || featuredDesc)
+                      : null,
                     h('span', { className: 'hg-btn primary hg-feature-play' }, h(Icon, { name: 'play', size: 12 }), t('player.watchNow')),
                   ),
                 ),
