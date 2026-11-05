@@ -51,4 +51,15 @@
 | `autoPrompt` | `true` | Agent 运行时是否显示提示 |
 | `panelWidth` | `480` | 播放器标签页的默认宽度（px） |
 | `profilePath` | 插件数据目录 | 匿名设备档案文件；删除即更换设备 |
-| `searchTerms` | `总裁/重生/逆袭` | 推荐不足时补充列表用的搜索词 |
+| `searchTerms` | `总裁/重生/逆袭` | 榜单不可用时兜底补充列表用的搜索词 |
+| `boards` | `臻果榜/必看榜` | 默认列表取哪些短剧榜单，按顺序合并去重 |
+
+### 默认列表来源
+
+默认列表不取推荐流，而是取平台自己的评审榜单，卡片下方显示榜上的评分或热度：
+
+- `ranklist_prestige`：臻果榜，按评分排出（`9.5分`、`9.4分`……），即平台公认的精品
+- `ranklist_must_watch`：必看榜，按最高热度排出（`14971万最高热度`）
+- 其他可用榜：`ranklist_hot_play_sc` 热播榜、`ranklist_hot_sc` 推荐榜、`ranklist_new_rank_sc` 新剧榜、`ranklist_hot_search_sc` 热搜榜
+
+搜索框直接查询上游，不再只是过滤已加载的 48 部。
