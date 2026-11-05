@@ -160,7 +160,10 @@ window.__ModuleLoader__.load({
 .hg-cover-fallback::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,var(--dsw-alias-brand-primary),transparent 62%);opacity:.16;pointer-events:none;}
 .hg-cover-fallback svg{opacity:.7;flex:none;position:relative;}
 .hg-cover-label{position:relative;font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--dsw-alias-label-secondary);}
-.hg-card:hover .hg-cover{box-shadow:0 0 0 2px var(--dsw-alias-brand-primary);}
+/* Hover ring: drawn by an inset ::after so the strip's overflow never clips
+ * it and the full-bleed poster never paints over it. */
+.hg-cover::after,.hg-history-cover::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 2px var(--dsw-alias-brand-primary);opacity:0;transition:opacity .15s ease;pointer-events:none;}
+.hg-card:hover .hg-cover::after,.hg-card:focus-visible .hg-cover::after,.hg-history-open:hover .hg-history-cover::after,.hg-history-open:focus-visible .hg-history-cover::after{opacity:1;}
 .hg-name{font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .hg-sub{font-size:11px;color:var(--dsw-alias-label-secondary);}
 .hg-muted{color:var(--dsw-alias-label-secondary);font-size:12px;padding:14px 2px;}
@@ -190,7 +193,6 @@ window.__ModuleLoader__.load({
 .hg-history-open{appearance:none;border:0;background:none;padding:0;width:100%;display:flex;flex-direction:column;gap:4px;text-align:left;color:inherit;font:inherit;cursor:pointer;}
 .hg-history-cover{position:relative;display:block;width:104px;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-2);}
 .hg-history-cover img{width:100%;height:100%;object-fit:cover;display:block;}
-.hg-history-open:hover .hg-history-cover{box-shadow:0 0 0 2px var(--dsw-alias-brand-primary);}
 .hg-history-name{font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .hg-history-line{font-size:11px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .hg-history-remove{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:inherit;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s ease;}
