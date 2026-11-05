@@ -173,7 +173,7 @@ window.__ModuleLoader__.load({
 .hg-stage video{height:100%;width:auto;max-width:100%;display:block;background:#000;}
 .hg-veil{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;text-align:center;padding:16px;font-size:12px;background:rgba(0,0,0,.45);}
 .hg-veil .hg-btn{color:#fff;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
-.hg-resume{position:absolute;left:8px;right:8px;bottom:8px;display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;}
+.hg-resume{position:absolute;left:8px;top:8px;right:auto;max-width:calc(100% - 16px);display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;}
 .hg-resume span{flex:1;min-width:0;}
 .hg-resume .hg-pick{color:#fff;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);}
 .hg-resume .hg-dismiss{color:#fff;}
@@ -870,6 +870,13 @@ window.__ModuleLoader__.load({
       React.useEffect(() => {
         setResumeNotice(undefined)
       }, [activeSource])
+
+      // The resume toast is informational: it gets out of the way on its own.
+      React.useEffect(() => {
+        if (!resumeNotice) return undefined
+        const timer = setTimeout(() => setResumeNotice(undefined), 8000)
+        return () => clearTimeout(timer)
+      }, [resumeNotice])
 
       // The list's "recent" section follows the stored history on every episode.
       React.useEffect(() => {
