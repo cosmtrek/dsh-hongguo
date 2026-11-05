@@ -32,6 +32,7 @@ function configSchema(z, DEFAULTS) {
     panelWidth: z.number().step(1).min(320).max(960).default(DEFAULTS.panelWidth),
     profilePath: z.string(),
     searchTerms: z.array(z.string()).default(DEFAULTS.searchTerms),
+    boards: z.array(z.string()).default(DEFAULTS.boards),
   })
 }
 
@@ -41,9 +42,16 @@ function configSchema(z, DEFAULTS) {
  * the wrong type falls back to the default instead of failing activation.
  */
 export async function reflectConfig(raw = {}) {
-  const DEFAULTS = { autoPrompt: true, panelWidth: 480, searchTerms: ['总裁', '重生', '逆袭'] }
+  const DEFAULTS = {
+    autoPrompt: true,
+    panelWidth: 480,
+    searchTerms: ['总裁', '重生', '逆袭'],
+    // 臻果榜 is the platform's rating board and 必看榜 its peak-heat board:
+    // together they are the "everybody agrees this is good" shortlist.
+    boards: ['ranklist_prestige', 'ranklist_must_watch'],
+  }
   const input = Object.fromEntries(
-    Object.entries(raw ?? {}).filter(([key]) => ['autoPrompt', 'panelWidth', 'profilePath', 'searchTerms'].includes(key)),
+    Object.entries(raw ?? {}).filter(([key]) => ['autoPrompt', 'panelWidth', 'profilePath', 'searchTerms', 'boards'].includes(key)),
   )
   let value
   try {
@@ -58,6 +66,7 @@ export async function reflectConfig(raw = {}) {
     if (typeof input.profilePath === 'string') value.profilePath = input.profilePath
     if (Array.isArray(input.searchTerms)) value.searchTerms = input.searchTerms.map(String)
     if (!value.searchTerms.length) value.searchTerms = DEFAULTS.searchTerms
+    if (Array.isArray(input.boards)) value.boards = input.boards.map(String)
   }
   return { ...DEFAULTS, ...value }
 }
@@ -133,7 +142,13 @@ export function apply(ctx, config = {}) {
   const settings = reflectConfig(config)
   let resolved
   const ready = settings.then((value) => (resolved = value))
-  const readConfig = () => ({ autoPrompt: true, panelWidth: 480, searchTerms: ['总裁', '重生', '逆袭'], ...(resolved ?? config) })
+  const readConfig = () => ({
+    autoPrompt: true,
+    panelWidth: 480,
+    searchTerms: ['总裁', '重生', '逆袭'],
+    boards: ['ranklist_prestige', 'ranklist_must_watch'],
+    ...(resolved ?? config),
+  })
   const dataDir = process.env.DSH_PLUGIN_DATA_DIR
     ? join(process.env.DSH_PLUGIN_DATA_DIR, 'dsh-hongguo')
     : join(homedir(), '.dsh', 'plugin-data', 'dsh-hongguo')
@@ -526,11 +541,62 @@ export function apply(ctx, config = {}) {
     if (existing.episodes === undefined && item.episode_count !== undefined) existing.episodes = item.episode_count
   }
 
+  /** One ranking row as a list entry; short-drama boards carry a score line. */
+  function rankRow(item) {
+    return {
+      id: item?.series_id ?? item?.id,
+      title: item?.title,
+      cover: item?.cover_url,
+      episodes: item?.episode_count,
+      score: item?.score,
+      rank: item?.position ?? item?.rank,
+    }
+  }
+
+  /** Merge ranking rows, keeping the first sighting of a drama and its best rank. */
+  function mergeRankRow(seen, item) {
+    const id = item?.series_id ?? item?.id
+    if (!id) return
+    const rank = item?.position ?? item?.rank
+    const existing = seen.get(id)
+    if (!existing) {
+      seen.set(id, rankRow(item))
+      return
+    }
+    if (!existing.cover && item.cover_url) existing.cover = item.cover_url
+    if (existing.episodes === undefined && item.episode_count !== undefined) existing.episodes = item.episode_count
+    if (!existing.score && item.score) existing.score = item.score
+    if (existing.rank === undefined && rank !== undefined) existing.rank = rank
+  }
+
   /**
-   * The drama list: the recommended feed first (it is ranked by heat and
-   * carries covers), then one page per configured search for anything else.
+   * The drama list: the platform's own boards first. 臻果榜 ranks dramas by
+   * rating and 必看榜 by peak heat, so the default list is the platform's
+   * shortlist instead of whatever generic search terms happened to be set.
    */
-  async function gather(sdk) {
+  async function gatherRanked(sdk, boards) {
+    const seen = new Map()
+    for (const board of boards) {
+      let cursor
+      for (let pageNo = 0; pageNo < 5; pageNo++) {
+        let page
+        try {
+          page = await sdk.shortRank({ content: 'all', board, cursor })
+        } catch (error) {
+          if (error?.code === 'ANONYMOUS_LIMITED' || error?.code === 'CONTENT_UNAVAILABLE') break
+          throw error
+        }
+        for (const item of page?.items ?? []) mergeRankRow(seen, item)
+        if (seen.size >= 48 || !page?.has_more || !page?.cursor) break
+        cursor = page.cursor
+      }
+      if (seen.size >= 48) break
+    }
+    return [...seen.values()]
+  }
+
+  /** Fallback list when no board answers: the recommended feed plus the configured searches. */
+  async function gatherFallback(sdk) {
     const seen = new Map()
     // Several pages of the recommended feed: enough for a few batches of
     // twelve, every row with a cover.
@@ -553,14 +619,25 @@ export function apply(ctx, config = {}) {
       }
       for (const item of page?.items ?? []) mergeRows(seen, item)
     }
-    // Pros at the top, then the feed's own order without the search extras.
-    const rows = [...seen.values()]
+    return [...seen.values()]
+  }
+
+  /** Rows that can be drawn: a cover makes the card, and twelve fill a page. */
+  function finishRows(rows) {
     const featured = rows.filter((row) => row.cover).slice(0, 48)
     return featured.length >= 12 ? featured : rows.slice(0, 48)
   }
 
   /** Posters looked up for search results, by series id. */
   const searchCovers = new Map()
+
+  async function gather(sdk) {
+    const boards = readConfig().boards
+    let rows = []
+    if (boards.length > 0) rows = finishRows(await gatherRanked(sdk, boards))
+    if (rows.length < 12) rows = finishRows(await gatherFallback(sdk))
+    return rows
+  }
 
   /** Rebuild the cached list in the background. */
   let refreshing

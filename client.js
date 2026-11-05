@@ -532,8 +532,15 @@ window.__ModuleLoader__.load({
       /** Results of the server-side search for the current query. */
       const [found, setFound] = React.useState({ status: 'idle', keyword: '', items: [], error: undefined })
       const [searchTick, setSearchTick] = React.useState(0)
+      /** "9.5分 · 79 episodes" when the Host sent a board score, else the count. */
+      const subtitleOf = (item) =>
+        [item?.score, item?.episodes ? t('player.episodes').replace('{count}', String(item.episodes)) : '']
+          .filter(Boolean)
+          .join(' · ')
       const [feed, setFeed] = React.useState({ status: 'loading', items: [], error: undefined })
       const [query, setQuery] = React.useState('')
+      /** Upstream search for the typed text; the list is no longer feed-only. */
+      const [search, setSearch] = React.useState({ status: 'idle', items: [], error: undefined })
       const [series, setSeries] = React.useState(undefined)
       const [seriesInfo, setSeriesInfo] = React.useState({ status: 'idle', episodes: [], error: undefined })
       const [current, setCurrent] = React.useState(undefined)
@@ -570,6 +577,31 @@ window.__ModuleLoader__.load({
       }, [])
 
       React.useEffect(loadFeed, [loadFeed])
+
+      // Search reaches the Host, so a drama the list never showed is still one
+      // query away; the short delay keeps typing from firing a request per key.
+      React.useEffect(() => {
+        const text = query.trim()
+        if (!text) {
+          setSearch({ status: 'idle', items: [], error: undefined })
+          return undefined
+        }
+        let cancelled = false
+        setSearch((previous) => ({ ...previous, status: 'loading', error: undefined }))
+        const timer = setTimeout(() => {
+          callApi(`/search?q=${encodeURIComponent(text)}`)
+            .then((body) => {
+              if (!cancelled) setSearch({ status: 'ready', items: body.items ?? [], error: undefined })
+            })
+            .catch((error) => {
+              if (!cancelled) setSearch({ status: 'error', items: [], error })
+            })
+        }, 250)
+        return () => {
+          cancelled = true
+          clearTimeout(timer)
+        }
+      }, [query])
 
       // Enter one drama: load its episodes, then continue the episode the
       // history left unfinished (or start the first one).
@@ -838,12 +870,13 @@ window.__ModuleLoader__.load({
       }, [keyword, searchTick])
 
       const PAGE = 12
+      const searching = query.trim() !== ''
       // The featured drama is already on screen; the grid shows the others.
-      const pool = keyword
-        ? found.items
+      const pool = searching
+        ? search.items
         : feed.items.filter((item) => item && item.id !== recommendation?.id)
       const pageCount = Math.max(1, Math.ceil(pool.length / PAGE))
-      const shownPage = page % pageCount
+      const shownPage = searching ? 0 : page % pageCount
       const visible = pool.slice(shownPage * PAGE, shownPage * PAGE + PAGE)
       /** Next twelve; after the last page, fetch a fresh list and start over. */
       const nextBatch = () => {
@@ -911,17 +944,15 @@ window.__ModuleLoader__.load({
               t('player.historyOpen'),
               watched.length > 0 ? h('span', { className: 'hg-count' }, String(watched.length)) : null,
             ),
-        series ? null : h('button', { className: 'hg-btn', type: 'button', onClick: nextBatch, disabled: feed.status === 'loading' }, t('player.refresh')),
+        series ? null : h('button', { className: 'hg-btn', type: 'button', onClick: nextBatch, disabled: feed.status === 'loading' || searching }, t('player.refresh')),
       )
 
       let content
       if (!series) {
         let grid
-        if (keyword && found.status === 'error') grid = h(ErrorBox, { error: found.error, onRetry: () => setSearchTick((value) => value + 1) })
-        else if (keyword && (found.status === 'loading' || found.keyword !== keyword)) grid = h('div', { className: 'hg-muted' }, t('player.searching'))
-        else if (keyword && visible.length === 0) grid = h('div', { className: 'hg-empty' }, t('player.noResults').replace('{q}', keyword))
-        else if (feed.status === 'error') grid = h(ErrorBox, { error: feed.error, onRetry: loadFeed })
-        else if (feed.status === 'loading' && visible.length === 0) grid = h('div', { className: 'hg-muted' }, t('player.loading'))
+        if (feed.status === 'error') grid = h(ErrorBox, { error: feed.error, onRetry: loadFeed })
+        else if (searching && search.status === 'error') grid = h(ErrorBox, { error: search.error, onRetry: () => setQuery((value) => value.trim()) })
+        else if ((feed.status === 'loading' || (searching && search.status === 'loading')) && visible.length === 0) grid = h('div', { className: 'hg-muted' }, t('player.loading'))
         else if (visible.length === 0) grid = h('div', { className: 'hg-empty' }, t('player.noSource'))
         else
           grid = h(
@@ -933,7 +964,7 @@ window.__ModuleLoader__.load({
                 { key: item.id, type: 'button', className: 'hg-card', onClick: () => openSeries(item) },
                 h('span', { className: 'hg-cover' }, h(Cover, { src: item.cover, alt: item.title ?? '' })),
                 h('span', { className: 'hg-name' }, item.title ?? item.id),
-                item.episodes ? h('span', { className: 'hg-sub' }, t('player.episodes').replace('{count}', String(item.episodes))) : null,
+                subtitleOf(item) ? h('span', { className: 'hg-sub' }, subtitleOf(item)) : null,
               ),
             ),
           )
@@ -991,7 +1022,7 @@ window.__ModuleLoader__.load({
                     'span',
                     { className: 'hg-feature-copy' },
                     h('b', null, recommendation.title ?? recommendation.id),
-                    recommendation.episodes ? h('span', { className: 'hg-sub' }, t('player.episodes').replace('{count}', String(recommendation.episodes))) : null,
+                    subtitleOf(recommendation) ? h('span', { className: 'hg-sub' }, subtitleOf(recommendation)) : null,
                     recommendation.description ? h('span', { className: 'hg-feature-desc' }, recommendation.description) : null,
                     h('span', { className: 'hg-btn primary hg-feature-play' }, h(Icon, { name: 'play', size: 12 }), t('player.watchNow')),
                   ),
