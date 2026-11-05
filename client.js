@@ -162,7 +162,9 @@ window.__ModuleLoader__.load({
 .hg-card:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px;border-radius:8px;}
 .hg-cover{aspect-ratio:3/4;width:100%;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-2);position:relative;}
 .hg-cover img,.hg-feature-cover img{width:100%;height:100%;object-fit:cover;display:block;}
-.hg-cover-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.45;}
+.hg-cover-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px;text-align:center;color:var(--dsw-alias-label-secondary);background:linear-gradient(150deg,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-base));}
+.hg-cover-fallback svg{opacity:.5;flex:none;}
+.hg-cover-label{font-size:10px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;opacity:.85;}
 .hg-card:hover .hg-cover{box-shadow:0 0 0 2px var(--dsw-alias-brand-primary);}
 .hg-name{font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .hg-sub{font-size:11px;color:var(--dsw-alias-label-secondary);}
@@ -195,10 +197,16 @@ window.__ModuleLoader__.load({
 .hg-section-head{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary);margin:0 2px 8px;}
 .hg-more{margin-left:auto;appearance:none;border:0;background:none;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer;padding:2px 5px;border-radius:6px;}
 .hg-more:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2);}
-.hg-history-card{display:flex;align-items:flex-start;gap:2px;margin-bottom:8px;}
-.hg-history-card .hg-feature-card{flex:1;min-width:0;padding:8px;gap:10px;align-items:center;}
-.hg-history-card .hg-feature-cover{width:64px;}
-.hg-history-card .hg-dismiss{flex:none;color:var(--dsw-alias-label-secondary);}
+.hg-history-strip{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:0 2px 6px;scroll-snap-type:x proximity;}
+.hg-history-item{position:relative;flex:none;width:104px;scroll-snap-align:start;}
+.hg-history-open{appearance:none;border:0;background:none;padding:0;width:100%;display:flex;flex-direction:column;gap:4px;text-align:left;color:inherit;font:inherit;cursor:pointer;}
+.hg-history-cover{position:relative;display:block;width:104px;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-2);}
+.hg-history-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+.hg-history-open:hover .hg-history-cover{box-shadow:0 0 0 2px var(--dsw-alias-brand-primary);}
+.hg-history-name{font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.hg-history-line{font-size:11px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hg-history-remove{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:inherit;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.hg-history-remove:hover{background:rgba(0,0,0,.8);}
 .hg-veil .hg-note{color:rgba(255,255,255,.75);max-width:240px;}
 .hg-veil.notice{background:rgba(0,0,0,.6);font-size:13px;line-height:1.5;}
 .hg-big{font-size:30px;font-weight:600;color:#fff;}
@@ -520,8 +528,17 @@ window.__ModuleLoader__.load({
      */
     function Cover({ src, alt, big }) {
       const [broken, setBroken] = React.useState(false)
-      const glyph = h(Mark, { size: big ? 34 : 22 })
-      if (!src || broken) return h('span', { className: 'hg-cover-fallback' }, glyph)
+      if (!src || broken) {
+        // No poster: a generated sleeve keeps the grid readable instead of a
+        // bare glyph, and names the drama so the card still reads.
+        const label = String(alt ?? '').replace(/[《》「」【】“”"]/g, '').trim().slice(0, 10)
+        return h(
+          'span',
+          { className: 'hg-cover-fallback' },
+          h(Mark, { size: big ? 30 : 20 }),
+          label ? h('span', { className: 'hg-cover-label' }, label) : null,
+        )
+      }
       // The CDN publishes HEIC; the Host converts each poster to JPEG once.
       const proxied = `${API}/cover?u=${encodeURIComponent(src)}`
       return h('img', { src: proxied, alt, loading: 'lazy', onError: () => setBroken(true) })
@@ -555,7 +572,6 @@ window.__ModuleLoader__.load({
       const [playing, setPlaying] = React.useState(false)
       const [rate, setRate] = React.useState(1)
       const rateRef = React.useRef(1)
-      const [showAllHistory, setShowAllHistory] = React.useState(false)
       /** Search opens from the header, next to History, instead of a bar above the list. */
       const [searchOpen, setSearchOpen] = React.useState(false)
       /** Which page of twelve the list shows; "换一批" steps through them. */
@@ -1000,9 +1016,9 @@ window.__ModuleLoader__.load({
             ),
           )
         // The home panel reads top to bottom: the one pick for you, then the
-        // dramas you already started, then the rest of the board you can page.
+        // dramas you already started as a horizontally scrollable strip, then
+        // the rest of the board you can page.
         const feedById = new Map(feed.items.map((item) => [item.id, item]))
-        const historyRows = watched.slice(0, showAllHistory ? watched.length : 5)
         const historySection =
           !searching && watched.length > 0
             ? h(
@@ -1013,43 +1029,34 @@ window.__ModuleLoader__.load({
                   { className: 'hg-section-head' },
                   h('span', null, t('player.historyOpen')),
                   h('span', { className: 'hg-count' }, String(watched.length)),
-                  watched.length > 5
-                    ? h(
-                        'button',
-                        { type: 'button', className: 'hg-more', onClick: () => setShowAllHistory((value) => !value) },
-                        showAllHistory ? t('prompt.collapse') : t('player.more'),
-                      )
-                    : null,
                 ),
-                historyRows.map((row) => {
-                  const item = feedById.get(row.seriesId) ?? { id: row.seriesId, title: row.title }
-                  const line =
-                    row.number === undefined || row.episodeId === undefined
-                      ? t('player.historyNew')
-                      : t('player.historyLine').replace('{n}', String(row.number)).replace('{t}', formatTime(row.position))
-                  return h(
-                    'div',
-                    { key: row.seriesId, className: 'hg-history-card' },
-                    h(
-                      'button',
-                      { type: 'button', className: 'hg-feature-card', onClick: () => continueWatching(row) },
-                      h('span', { className: 'hg-feature-cover' }, h(Cover, { src: item.cover, alt: item.title ?? '', big: true })),
+                h(
+                  'div',
+                  { className: 'hg-history-strip' },
+                  watched.map((row) => {
+                    const item = feedById.get(row.seriesId) ?? { id: row.seriesId, title: row.title }
+                    const line =
+                      row.number === undefined || row.episodeId === undefined
+                        ? t('player.historyNew')
+                        : t('player.historyLine').replace('{n}', String(row.number)).replace('{t}', formatTime(row.position))
+                    return h(
+                      'div',
+                      { key: row.seriesId, className: 'hg-history-item' },
                       h(
-                        'span',
-                        { className: 'hg-feature-copy' },
-                        h('b', null, row.title ?? item.title ?? row.seriesId),
-                        h('span', { className: 'hg-sub' }, line),
-                        item.score ? h('span', { className: 'hg-sub' }, item.score) : null,
-                        h('span', { className: 'hg-btn primary hg-feature-play' }, h(Icon, { name: 'play', size: 12 }), t('player.resume')),
+                        'button',
+                        { type: 'button', className: 'hg-history-open', onClick: () => continueWatching(row) },
+                        h('span', { className: 'hg-history-cover' }, h(Cover, { src: item.cover, alt: row.title ?? item.title ?? '' })),
+                        h('span', { className: 'hg-history-name' }, row.title ?? item.title ?? row.seriesId),
+                        h('span', { className: 'hg-history-line' }, line),
                       ),
-                    ),
-                    h(
-                      'button',
-                      { type: 'button', className: 'hg-dismiss', title: t('player.forget'), 'aria-label': t('player.forget'), onClick: () => forget(row.seriesId) },
-                      '\u00d7',
-                    ),
-                  )
-                }),
+                      h(
+                        'button',
+                        { type: 'button', className: 'hg-history-remove', title: t('player.forget'), 'aria-label': t('player.forget'), onClick: () => forget(row.seriesId) },
+                        '\u00d7',
+                      ),
+                    )
+                  }),
+                ),
               )
             : null
         const picksSection = h(
