@@ -60,7 +60,7 @@ window.__ModuleLoader__.load({
       'player.pickRandom': '随便挑一集',
       'player.startFirst': '从第 1 集开始',
       'player.recommend': '为你推荐',
-      'player.picks': '推荐',
+      'player.picks': '精品榜',
       'player.results': '搜索结果',
       'player.historyOpen': '观看历史',
       'player.search': '搜索短剧',
@@ -120,7 +120,7 @@ window.__ModuleLoader__.load({
       'player.pickRandom': 'Surprise me with an episode',
       'player.startFirst': 'Start from episode 1',
       'player.recommend': 'Recommended for you',
-      'player.picks': 'Dramas for you',
+      'player.picks': 'Top picks',
       'player.results': 'Results',
       'player.historyOpen': 'History',
       'player.search': 'Search dramas',
@@ -401,6 +401,27 @@ window.__ModuleLoader__.load({
     /** Series blurbs fetched for the feature card, remembered per drama. */
     const descCache = new Map()
 
+    /** Display names for the platform boards the Host may report. */
+    const BOARD_NAMES = {
+      ranklist_prestige: '臻果榜',
+      ranklist_must_watch: '必看榜',
+      ranklist_hot_play_sc: '热播榜',
+      ranklist_hot_sc: '推荐榜',
+      ranklist_new_rank_sc: '新剧榜',
+      ranklist_hot_search_sc: '热搜榜',
+      ranklist_chase_update: '追更榜',
+      ranklist_subscribe: '预约榜',
+      ranklist_followed: '收藏榜',
+      'series_album_hot_sc': '系列剧·推荐榜',
+      'series_album_new_rank': '系列剧·新季榜',
+      'human_hot_sc': '真人剧·推荐榜',
+      'human_hot_play': '真人剧·热播榜',
+      'human_new_rank': '真人剧·新剧榜',
+      'human_must_watch': '真人剧·必看榜',
+      'comic_series_hot_rank': '漫剧·推荐榜',
+      'comic_series_hot_play': '漫剧·热播榜',
+    }
+
     /** The Host's drama list, cached for a minute. */
     async function fetchFeed(force) {
       if (!force && feedCache.items.length > 0 && Date.now() - feedCache.at < 60_000) return feedCache.items
@@ -566,7 +587,7 @@ window.__ModuleLoader__.load({
         [item?.score, item?.episodes ? t('player.episodes').replace('{count}', String(item.episodes)) : '']
           .filter(Boolean)
           .join(' · ')
-      const [feed, setFeed] = React.useState({ status: 'loading', items: [], error: undefined })
+      const [feed, setFeed] = React.useState({ status: 'loading', items: [], error: undefined, board: null })
       const [query, setQuery] = React.useState('')
       /** Upstream search for the typed text; the list is no longer feed-only. */
       const [search, setSearch] = React.useState({ status: 'idle', items: [], error: undefined })
@@ -602,8 +623,8 @@ window.__ModuleLoader__.load({
       const loadFeed = React.useCallback(() => {
         setFeed((previous) => ({ ...previous, status: 'loading', error: undefined }))
         callApi('/feed')
-          .then((body) => setFeed({ status: 'ready', items: body.items ?? [], error: undefined }))
-          .catch((error) => setFeed({ status: 'error', items: [], error }))
+          .then((body) => setFeed({ status: 'ready', items: body.items ?? [], error: undefined, board: body.board ?? null }))
+          .catch((error) => setFeed({ status: 'error', items: [], error, board: null }))
       }, [])
 
       React.useEffect(loadFeed, [loadFeed])
@@ -938,7 +959,7 @@ window.__ModuleLoader__.load({
         else {
           setPage(0)
           fetchFeed(true)
-            .then((items) => setFeed({ status: 'ready', items, error: undefined }))
+            .then((items) => setFeed((previous) => ({ ...previous, status: 'ready', items, error: undefined })))
             .catch(() => {})
         }
       }
@@ -1096,7 +1117,9 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'hg-section-head' },
-            t(searching ? 'player.results' : 'player.picks'),
+            // The grid is the board itself; title it by its name so the section
+            // no longer doubles the feature card's "recommended" wording.
+            searching ? t('player.results') : (feed.board && BOARD_NAMES[feed.board]) || t('player.picks'),
             searching
               ? null
               : h('button', { type: 'button', className: 'hg-more', onClick: nextBatch, disabled: feed.status === 'loading' }, t('player.refresh')),

@@ -157,6 +157,8 @@ export function apply(ctx, config = {}) {
   let clientPromise
   let games = []
   let gamesAt = 0
+  /** Where the current list came from: the configured boards or the fallback. */
+  let gamesSource = 'fallback'
   /** What the page last said it is playing, for the Host's own surfaces. */
   let lastActivity
 
@@ -634,9 +636,13 @@ export function apply(ctx, config = {}) {
   async function gather(sdk) {
     const boards = readConfig().boards
     let rows = []
-    if (boards.length > 0) rows = finishRows(await gatherRanked(sdk, boards))
+    let source = 'fallback'
+    if (boards.length > 0) {
+      rows = finishRows(await gatherRanked(sdk, boards))
+      if (rows.length >= 12) source = 'boards'
+    }
     if (rows.length < 12) rows = finishRows(await gatherFallback(sdk))
-    return rows
+    return { rows, source }
   }
 
   /** Rebuild the cached list in the background. */
@@ -645,9 +651,10 @@ export function apply(ctx, config = {}) {
     refreshing ??= (async () => {
       try {
         const sdk = await client()
-        const items = await gather(sdk)
-        if (items.length > 0) {
-          games = items
+        const { rows, source } = await gather(sdk)
+        if (rows.length > 0) {
+          games = rows
+          gamesSource = source
           gamesAt = Date.now()
         }
       } catch (error) {
@@ -826,17 +833,20 @@ export function apply(ctx, config = {}) {
 
     if (path === '/feed') {
       return json(async () => {
-        if (games.length > 0 && Date.now() - gamesAt < 15 * 60_000) return { items: games }
+        // Name the board that drove the list, so the page can title its section
+        // honestly instead of saying "recommended" twice.
+        const board = gamesSource === 'boards' ? readConfig().boards[0] ?? null : null
+        if (games.length > 0 && Date.now() - gamesAt < 15 * 60_000) return { items: games, board }
         // A list built a moment ago is good enough while a refresh runs: the
         // SDK is slow on a cold device, and the page must not wait for it twice.
         if (games.length > 0) {
           refreshFeed()
-          return { items: games }
+          return { items: games, board }
         }
         // A warm-up already running answers this request too.
         await refreshFeed()
         if (games.length === 0) throw Object.assign(new Error('暂时拿不到剧集列表'), { code: 'UNAVAILABLE' })
-        return { items: games }
+        return { items: games, board: gamesSource === 'boards' ? readConfig().boards[0] ?? null : null }
       })
     }
 
