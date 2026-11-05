@@ -893,23 +893,6 @@ window.__ModuleLoader__.load({
         [watched, series, playEpisode],
       )
 
-      // Search-found dramas enter history without a poster. Once per session,
-      // ask the Host for the detail and tuck its cover into the record.
-      React.useEffect(() => {
-        if (searching) return
-        for (const row of watched) {
-          if (row.cover || feed.items.some((item) => item.id === row.seriesId && item.cover)) continue
-          if (coverTried.has(row.seriesId)) continue
-          coverTried.add(row.seriesId)
-          fetchSeriesDetail(row.seriesId)
-            .then((body) => {
-              const cover = body?.series?.cover_url
-              if (cover) saveHistoryCover(row.seriesId, cover)
-            })
-            .catch(() => {})
-        }
-      }, [watched, feed.items, searching, saveHistoryCover])
-
       const PAGE = 12
       const searching = query.trim() !== ''
       // The whole board is the list; the history strip above it is the "for you".
@@ -927,6 +910,23 @@ window.__ModuleLoader__.load({
             .catch(() => {})
         }
       }
+
+      // Search-found dramas enter history without a poster. Once per session,
+      // ask the Host for the detail and tuck its cover into the record.
+      React.useEffect(() => {
+        if (searching) return
+        for (const row of watched) {
+          if (row.cover || feed.items.some((item) => item.id === row.seriesId && item.cover)) continue
+          if (coverTried.has(row.seriesId)) continue
+          coverTried.add(row.seriesId)
+          fetchSeriesDetail(row.seriesId)
+            .then((body) => {
+              const cover = body?.series?.cover_url
+              if (cover) saveHistoryCover(row.seriesId, cover)
+            })
+            .catch(() => {})
+        }
+      }, [watched, feed.items, searching, saveHistoryCover])
       const CHUNK = 50
       const chunkCount = Math.ceil(seriesInfo.episodes.length / CHUNK)
       const total = seriesInfo.episodes.length || series?.episodes || 0
