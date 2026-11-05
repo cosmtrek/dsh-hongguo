@@ -60,10 +60,12 @@ window.__ModuleLoader__.load({
       'player.pickRandom': '随便挑一集',
       'player.startFirst': '从第 1 集开始',
       'player.recommend': '为你推荐',
+      'player.picks': '推荐',
+      'player.results': '搜索结果',
       'player.historyOpen': '观看历史',
       'player.search': '搜索短剧',
       'player.searching': '搜索中…',
-      'player.noResults': '没有找到“{q}”相关的短剧',
+      'player.noResults': '没有找到相关短剧',
       'player.historyEmpty': '还没有观看记录',
       'player.episodeOf': '第 {n} 集 · 共 {total} 集',
       'player.chooseEpisode': '选集',
@@ -118,10 +120,12 @@ window.__ModuleLoader__.load({
       'player.pickRandom': 'Surprise me with an episode',
       'player.startFirst': 'Start from episode 1',
       'player.recommend': 'Recommended for you',
+      'player.picks': 'Dramas for you',
+      'player.results': 'Results',
       'player.historyOpen': 'History',
       'player.search': 'Search dramas',
       'player.searching': 'Searching…',
-      'player.noResults': 'No dramas found for “{q}”',
+      'player.noResults': 'No dramas found',
       'player.historyEmpty': 'Nothing watched yet',
       'player.episodeOf': 'Episode {n} of {total}',
       'player.chooseEpisode': 'Episodes',
@@ -146,7 +150,8 @@ window.__ModuleLoader__.load({
 .hg-btn.primary{background:var(--dsw-alias-label-primary);border-color:transparent;color:var(--dsw-alias-bg-base);font-weight:600;}
 .hg-btn.primary:hover{background:var(--dsw-alias-label-primary);opacity:.9;}
 .hg-body{flex:1;min-height:0;overflow:auto;padding:0 12px 16px;}
-.hg-search{display:flex;gap:6px;margin-bottom:10px;position:sticky;top:0;background:var(--dsw-alias-bg-base);padding:2px 0 8px;z-index:1;}
+.hg-search-inline{flex:1;min-width:0;display:flex;}
+.hg-icon-btn.active{background:var(--dsw-alias-bg-layer-2);}
 .hg-input{flex:1;min-width:0;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;}
 .hg-body{container-type:inline-size;}
 .hg-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 8px;}
@@ -186,8 +191,11 @@ window.__ModuleLoader__.load({
 .hg-feature-copy b{font-size:14px;line-height:1.35;}
 .hg-feature-desc{font-size:11px;line-height:1.5;color:var(--dsw-alias-label-secondary);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .hg-feature-play{align-self:flex-start;font-size:11px;padding:5px 10px;border-radius:999px;line-height:1.2;}
-.hg-history{margin-bottom:12px;}
-.hg-history-head{font-size:11px;color:var(--dsw-alias-label-secondary);margin:0 0 6px;}
+.hg-section{margin-bottom:14px;}
+.hg-section-head{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary);margin:0 2px 8px;}
+.hg-more{margin-left:auto;appearance:none;border:0;background:none;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer;padding:2px 5px;border-radius:6px;}
+.hg-more:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2);}
+.hg-history-list{display:flex;flex-direction:column;gap:1px;}
 .hg-history-row{display:flex;align-items:center;gap:4px;}
 .hg-history-main{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;appearance:none;border:0;background:none;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:left;padding:4px 6px;border-radius:6px;cursor:pointer;}
 .hg-history-main:hover{background:var(--dsw-alias-bg-layer-2);}
@@ -217,8 +225,6 @@ window.__ModuleLoader__.load({
 .hg-icon-btn:hover{background:var(--dsw-alias-bg-layer-2);}
 .hg-title-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
 .hg-title-sub{font-size:11px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;}
-.hg-history{margin-bottom:12px;padding:8px;border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);max-height:260px;overflow:auto;}
-.hg-history-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--dsw-alias-label-secondary);margin:0 2px 4px 6px;}
 .hg-dismiss{appearance:none;border:0;background:none;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;font-size:14px;line-height:1;padding:3px 6px;border-radius:6px;}
 .hg-dismiss:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2);}
 .hg-feature-play{display:inline-flex;align-items:center;gap:4px;}
@@ -299,6 +305,7 @@ window.__ModuleLoader__.load({
         muted: 'M4 9.5h3.5L12 5.5v13l-4.5-4H4zM16 9.5l5 5M21 9.5l-5 5',
         fullscreen: 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5',
         history: 'M4 12a8 8 0 102.3-5.6M4 4v4h4M12 8v4.5l3 2',
+        search: 'M11 4.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM15.9 15.9L21 21',
       }
       const filled = name === 'play' || name === 'pause' || name === 'next'
       return h(
@@ -551,7 +558,9 @@ window.__ModuleLoader__.load({
       const [playing, setPlaying] = React.useState(false)
       const [rate, setRate] = React.useState(1)
       const rateRef = React.useRef(1)
-      const [showHistory, setShowHistory] = React.useState(false)
+      const [showAllHistory, setShowAllHistory] = React.useState(false)
+      /** Search opens from the header, next to History, instead of a bar above the list. */
+      const [searchOpen, setSearchOpen] = React.useState(false)
       /** Which page of twelve the list shows; "换一批" steps through them. */
       const [page, setPage] = React.useState(0)
       const [chunk, setChunk] = React.useState(0)
@@ -922,29 +931,55 @@ window.__ModuleLoader__.load({
         series
           ? h('button', { className: 'hg-icon-btn', type: 'button', title: t('player.back'), 'aria-label': t('player.back'), onClick: () => { setSeries(undefined); setCurrent(undefined); setPlayback({ status: 'idle' }) } }, h(Icon, { name: 'back' }))
           : h(Mark, { size: 18 }),
-        h(
-          'div',
-          { className: 'hg-title-wrap' },
-          h('div', { className: 'hg-title', title: series?.title ?? t('tab.title') }, series?.title ?? t('tab.title')),
-          series && current && total
-            ? h('div', { className: 'hg-title-sub' }, t('player.episodeOf').replace('{n}', String(current.number ?? index + 1)).replace('{total}', String(total)))
-            : null,
-        ),
+        !series && searchOpen
+          ? h(
+              'div',
+              { className: 'hg-search-inline' },
+              h('input', {
+                className: 'hg-input',
+                type: 'search',
+                autoFocus: true,
+                placeholder: t('player.search'),
+                value: query,
+                onChange: (event) => {
+                  setQuery(event.target.value)
+                  setPage(0)
+                },
+                onKeyDown: (event) => {
+                  if (event.key === 'Escape') {
+                    setQuery('')
+                    setSearchOpen(false)
+                  }
+                },
+                'aria-label': t('player.search'),
+              }),
+            )
+          : h(
+              'div',
+              { className: 'hg-title-wrap' },
+              h('div', { className: 'hg-title', title: series?.title ?? t('tab.title') }, series?.title ?? t('tab.title')),
+              series && current && total
+                ? h('div', { className: 'hg-title-sub' }, t('player.episodeOf').replace('{n}', String(current.number ?? index + 1)).replace('{total}', String(total)))
+                : null,
+            ),
         series
           ? null
           : h(
               'button',
               {
-                className: 'hg-btn' + (showHistory ? ' active' : ''),
+                className: 'hg-icon-btn' + (searchOpen ? ' active' : ''),
                 type: 'button',
-                'aria-pressed': String(showHistory),
-                onClick: () => setShowHistory((value) => !value),
+                title: t('player.search'),
+                'aria-label': t('player.search'),
+                'aria-pressed': String(searchOpen),
+                onClick: () => {
+                  if (searchOpen) setQuery('')
+                  setSearchOpen((open) => !open)
+                },
               },
-              h(Icon, { name: 'history' }),
-              t('player.historyOpen'),
-              watched.length > 0 ? h('span', { className: 'hg-count' }, String(watched.length)) : null,
+              h(Icon, { name: 'search' }),
             ),
-        series ? null : h('button', { className: 'hg-btn', type: 'button', onClick: nextBatch, disabled: feed.status === 'loading' || searching }, t('player.refresh')),
+        series || searchOpen ? null : h('button', { className: 'hg-btn', type: 'button', onClick: nextBatch, disabled: feed.status === 'loading' || searching }, t('player.refresh')),
       )
 
       let content
@@ -953,7 +988,7 @@ window.__ModuleLoader__.load({
         if (feed.status === 'error') grid = h(ErrorBox, { error: feed.error, onRetry: loadFeed })
         else if (searching && search.status === 'error') grid = h(ErrorBox, { error: search.error, onRetry: () => setQuery((value) => value.trim()) })
         else if ((feed.status === 'loading' || (searching && search.status === 'loading')) && visible.length === 0) grid = h('div', { className: 'hg-muted' }, t('player.loading'))
-        else if (visible.length === 0) grid = h('div', { className: 'hg-empty' }, t('player.noSource'))
+        else if (visible.length === 0) grid = h('div', { className: 'hg-empty' }, t(searching ? 'player.noResults' : 'player.noSource'))
         else
           grid = h(
             'div',
@@ -968,25 +1003,37 @@ window.__ModuleLoader__.load({
               ),
             ),
           )
-        const historyPanel = showHistory
-          ? h(
-              'div',
-              { className: 'hg-history' },
-              h(
+        // The home panel reads top to bottom: the one pick for you, then the
+        // dramas you already started, then the rest of the board you can page.
+        const historyRows = watched.slice(0, showAllHistory ? watched.length : 5)
+        const historySection =
+          !searching && watched.length > 0
+            ? h(
                 'div',
-                { className: 'hg-history-head' },
-                h('span', null, t('player.history')),
-                h('button', { type: 'button', className: 'hg-dismiss', 'aria-label': t('player.close'), onClick: () => setShowHistory(false) }, '\u00d7'),
-              ),
-              watched.length === 0
-                ? h('div', { className: 'hg-muted' }, t('player.historyEmpty'))
-                : watched.map((row) =>
+                { className: 'hg-section' },
+                h(
+                  'div',
+                  { className: 'hg-section-head' },
+                  h('span', null, t('player.historyOpen')),
+                  h('span', { className: 'hg-count' }, String(watched.length)),
+                  watched.length > 5
+                    ? h(
+                        'button',
+                        { type: 'button', className: 'hg-more', onClick: () => setShowAllHistory((value) => !value) },
+                        showAllHistory ? t('prompt.collapse') : t('player.more'),
+                      )
+                    : null,
+                ),
+                h(
+                  'div',
+                  { className: 'hg-history-list' },
+                  historyRows.map((row) =>
                     h(
                       'div',
                       { key: row.seriesId, className: 'hg-history-row' },
                       h(
                         'button',
-                        { type: 'button', className: 'hg-history-main', onClick: () => { setShowHistory(false); continueWatching(row) } },
+                        { type: 'button', className: 'hg-history-main', onClick: () => continueWatching(row) },
                         h('span', { className: 'hg-history-title' }, row.title ?? row.seriesId),
                         h(
                           'span',
@@ -1003,13 +1050,19 @@ window.__ModuleLoader__.load({
                       ),
                     ),
                   ),
-            )
-          : null
+                ),
+              )
+            : null
+        const picksSection = h(
+          'div',
+          { className: 'hg-section' },
+          h('div', { className: 'hg-section-head' }, t(searching ? 'player.results' : 'player.picks')),
+          grid,
+        )
         content = h(
           React.Fragment,
           null,
-          historyPanel,
-          recommendation && !query.trim()
+          recommendation && !searching
             ? h(
                 'div',
                 { className: 'hg-feature' },
@@ -1029,26 +1082,8 @@ window.__ModuleLoader__.load({
                 ),
               )
             : null,
-          h(
-            'div',
-            { className: 'hg-search' },
-            h('input', {
-              className: 'hg-input',
-              type: 'search',
-              placeholder: t('player.search'),
-              value: query,
-              onChange: (event) => {
-                setQuery(event.target.value)
-                setPage(0)
-                setSearchTick(0)
-              },
-              onKeyDown: (event) => {
-                if (event.key === 'Enter' && !event.nativeEvent.isComposing) setSearchTick((value) => value + 1)
-              },
-              'aria-label': t('player.search'),
-            }),
-          ),
-          grid,
+          historySection,
+          picksSection,
         )
       } else {
         const ratio = progress.duration ? Math.min(100, (progress.time / progress.duration) * 100) : 0
