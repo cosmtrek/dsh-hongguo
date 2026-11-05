@@ -49,7 +49,6 @@ window.__ModuleLoader__.load({
       'player.remuxing': '正在把这一集转换成可直接播放的格式…',
       'player.finished': '任务完成了，先停一下。看完结果再看剧。',
       'player.resume': '继续播放',
-      'player.history': '继续观看',
       'player.historyLine': '第 {n} 集 · {t}',
       'player.historyNew': '还没开始看',
       'player.forget': '从历史中移除',
@@ -59,7 +58,6 @@ window.__ModuleLoader__.load({
       'player.notPlaying': '现在没有正在播放的短剧',
       'player.pickRandom': '随便挑一集',
       'player.startFirst': '从第 1 集开始',
-      'player.recommend': '为你推荐',
       'player.picks': '精品榜',
       'player.results': '搜索结果',
       'player.historyOpen': '观看历史',
@@ -73,7 +71,6 @@ window.__ModuleLoader__.load({
       'player.fullscreen': '全屏',
       'player.play': '播放',
       'player.pause': '暂停',
-      'player.watchNow': '现在就看',
       'player.drm': '这一集是加密流，且未能在本机解密（需要安装 ffmpeg）',
       'player.error': '出错了：{message}',
       'player.noFree': '这部剧没有可免费播放的集',
@@ -109,7 +106,6 @@ window.__ModuleLoader__.load({
       'player.remuxing': 'Preparing this episode for playback…',
       'player.finished': 'Task finished — paused for you. Resume when ready.',
       'player.resume': 'Resume',
-      'player.history': 'Continue watching',
       'player.historyLine': 'Episode {n} · {t}',
       'player.historyNew': 'Not started',
       'player.forget': 'Remove from history',
@@ -119,7 +115,6 @@ window.__ModuleLoader__.load({
       'player.notPlaying': 'Nothing is playing right now',
       'player.pickRandom': 'Surprise me with an episode',
       'player.startFirst': 'Start from episode 1',
-      'player.recommend': 'Recommended for you',
       'player.picks': 'Top picks',
       'player.results': 'Results',
       'player.historyOpen': 'History',
@@ -134,7 +129,6 @@ window.__ModuleLoader__.load({
       'player.play': 'Play',
       'player.pause': 'Pause',
       'player.noFree': 'No free episodes in this drama',
-      'player.watchNow': 'Watch now',
       'player.drm': 'This episode is encrypted and could not be decrypted locally (ffmpeg is required)',
       'player.error': 'Something went wrong: {message}',
     }
@@ -161,7 +155,7 @@ window.__ModuleLoader__.load({
 .hg-card{appearance:none;border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit;display:flex;flex-direction:column;gap:5px;min-width:0;}
 .hg-card:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px;border-radius:8px;}
 .hg-cover{aspect-ratio:3/4;width:100%;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-2);position:relative;}
-.hg-cover img,.hg-feature-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+.hg-cover img{width:100%;height:100%;object-fit:cover;display:block;}
 .hg-cover-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:10px;text-align:center;color:var(--dsw-alias-label-secondary);background:radial-gradient(120% 120% at 18% 0%,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-base));box-shadow:inset 0 0 0 1px var(--dsw-alias-border-l1);}
 .hg-cover-fallback::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,var(--dsw-alias-brand-primary),transparent 62%);opacity:.16;pointer-events:none;}
 .hg-cover-fallback svg{opacity:.7;flex:none;position:relative;}
@@ -184,16 +178,6 @@ window.__ModuleLoader__.load({
 .hg-idle-text{color:var(--dsw-alias-label-secondary);font-size:12px;}
 .hg-idle-pick{appearance:none;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);border-radius:999px;padding:7px 14px;font:inherit;font-size:12px;cursor:pointer;}
 .hg-idle-pick:hover{border-color:var(--dsw-alias-brand-primary);}
-.hg-feature{margin-bottom:14px;}
-.hg-feature-head{font-size:11px;color:var(--dsw-alias-label-secondary);margin:0 0 6px;}
-.hg-feature-card{display:flex;gap:12px;width:100%;text-align:left;appearance:none;border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:10px;color:inherit;font:inherit;cursor:pointer;}
-.hg-feature-card:hover{border-color:var(--dsw-alias-brand-primary);}
-.hg-feature-cover{position:relative;flex:none;width:84px;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-2);display:flex;align-items:center;justify-content:center;}
-.hg-feature-cover img{width:100%;height:100%;object-fit:cover;}
-.hg-feature-copy{display:flex;flex-direction:column;gap:6px;min-width:0;}
-.hg-feature-copy b{font-size:14px;line-height:1.35;}
-.hg-feature-desc{font-size:11px;line-height:1.5;color:var(--dsw-alias-label-secondary);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-.hg-feature-play{align-self:flex-start;font-size:11px;padding:5px 10px;border-radius:999px;line-height:1.2;}
 .hg-section{margin-bottom:14px;}
 .hg-section-head{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary);margin:0 2px 8px;}
 .hg-more{margin-left:auto;appearance:none;border:0;background:none;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer;padding:2px 5px;border-radius:6px;}
@@ -237,7 +221,6 @@ window.__ModuleLoader__.load({
 .hg-title-sub{font-size:11px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;}
 .hg-dismiss{appearance:none;border:0;background:none;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;font-size:14px;line-height:1;padding:3px 6px;border-radius:6px;}
 .hg-dismiss:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2);}
-.hg-feature-play{display:inline-flex;align-items:center;gap:4px;}
 .hg-player{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
 .hg-stage{position:relative;border-radius:12px;overflow:hidden;background:#000;width:100%;max-width:min(100%,calc(66vh * var(--hg-aspect,0.5625)));margin:0 auto;display:flex;align-items:center;justify-content:center;}
 .hg-stage:fullscreen{max-width:none;border-radius:0;aspect-ratio:auto;}
@@ -398,8 +381,8 @@ window.__ModuleLoader__.load({
     /** Last drama list, so the door prompt can name one without a round trip. */
     let feedCache = { at: 0, items: [] }
 
-    /** Series blurbs fetched for the feature card, remembered per drama. */
-    const descCache = new Map()
+    /** History dramas whose poster backfill was already tried this session. */
+    const coverTried = new Set()
 
     /** Display names for the platform boards the Host may report. */
     const BOARD_NAMES = {
@@ -430,16 +413,21 @@ window.__ModuleLoader__.load({
       return feedCache.items
     }
 
-    /** Episode list for one drama; failures on a rotated device are retried once. */
-    async function fetchSeries(seriesId) {
-      const query = `/series?id=${encodeURIComponent(seriesId)}`
+    /** Series detail and episode list for one drama; a rotated device is retried once. */
+    async function fetchSeriesDetail(seriesId) {
       try {
-        const body = await callApi(query)
-        return (body.episodes ?? []).filter((episode) => episode.playable !== false)
+        return await callApi(`/series?id=${encodeURIComponent(seriesId)}`)
       } catch (error) {
         if (error.code !== 'ANONYMOUS_LIMITED') throw error
-        const body = await callApi(query)
-        return (body.episodes ?? []).filter((episode) => episode.playable !== false)
+        return await callApi(`/series?id=${encodeURIComponent(seriesId)}`)
+      }
+    }
+
+    async function fetchSeries(seriesId) {
+      const body = await fetchSeriesDetail(seriesId)
+      return {
+        series: body.series,
+        episodes: (body.episodes ?? []).filter((episode) => episode.playable !== false),
       }
     }
 
@@ -518,7 +506,18 @@ window.__ModuleLoader__.load({
       if (at > 0 && !episode?.id) return
       const history = readJson(STORE_KEY, { series: {} })
       const records = history.series ?? {}
-      records[series.id] = { seriesId: series.id, title: series.title, episodeId: episode?.id, number: episode?.number, position: at, at: Date.now() }
+      // Keep whatever the record already knows (a fetched cover), then refresh
+      // the viewing fields; a series item that carries a cover donates it.
+      records[series.id] = {
+        ...records[series.id],
+        seriesId: series.id,
+        title: series.title,
+        cover: series.cover ?? records[series.id]?.cover,
+        episodeId: episode?.id,
+        number: episode?.number,
+        position: at,
+        at: Date.now(),
+      }
       // Keep the list short: the most recent twelve dramas.
       const trimmed = Object.fromEntries(
         Object.values(records)
@@ -579,9 +578,6 @@ window.__ModuleLoader__.load({
      */
     function DramaPlayer({ requested, compact }) {
       const t = useTranslate()
-      /** Results of the server-side search for the current query. */
-      const [found, setFound] = React.useState({ status: 'idle', keyword: '', items: [], error: undefined })
-      const [searchTick, setSearchTick] = React.useState(0)
       /** "9.5分 · 79 episodes" when the Host sent a board score, else the count. */
       const subtitleOf = (item) =>
         [item?.score, item?.episodes ? t('player.episodes').replace('{count}', String(item.episodes)) : '']
@@ -665,7 +661,11 @@ window.__ModuleLoader__.load({
         setPlayback({ status: 'idle', data: undefined, error: undefined })
         setSeriesInfo({ status: 'loading', episodes: [], error: undefined })
         fetchSeries(item.id)
-          .then((episodes) => {
+          .then(({ series: detail, episodes }) => {
+            // Search results often arrive without a poster; the detail has one,
+            // so tuck it into the history record for the strip.
+            coverTried.add(item.id)
+            if (detail?.cover_url) saveHistoryCover(item.id, detail.cover_url)
             setSeriesInfo({ status: 'ready', episodes, error: undefined })
             const record = listHistory().find((row) => row.seriesId === item.id)
             const saved = record ? episodes.find((episode) => episode.id === record.episodeId) : undefined
@@ -717,17 +717,26 @@ window.__ModuleLoader__.load({
         setWatched(listHistory())
       }, [])
 
-      /** Continue exactly where the history left off. */
+      /** Tuck a fetched poster into one history record, so search-found
+       * dramas stop showing the generated sleeve in the strip. */
+      const saveHistoryCover = React.useCallback((seriesId, cover) => {
+        const history = readJson(HISTORY_KEY, { series: {} })
+        const records = history.series ?? {}
+        if (!records[seriesId] || records[seriesId].cover === cover) return
+        records[seriesId] = { ...records[seriesId], cover }
+        writeJson(HISTORY_KEY, { series: records })
+        setWatched(listHistory())
+      }, [])
+
+      /** Continue exactly where the history left off. Routes through the full
+       * open flow, so the view actually switches to the player and a failure
+       * (an off-shelf drama, a preorder season) shows there instead of dying
+       * silently behind the list. */
       const continueWatching = React.useCallback(
         (row) => {
-          fetchSeries(row.seriesId)
-            .then((episodes) => {
-              const episode = episodes.find((item) => item.id === row.episodeId) ?? episodes[0]
-              if (episode) playEpisode(episode, row.episodeId === episode.id ? row.position : 0)
-            })
-            .catch(() => {})
+          openSeriesRef.current({ id: row.seriesId, title: row.title, cover: row.cover })
         },
-        [playEpisode],
+        [],
       )
 
       const playEpisodeRef = React.useRef(playEpisode)
@@ -884,78 +893,33 @@ window.__ModuleLoader__.load({
         [watched, series, playEpisode],
       )
 
-      // What to watch next: hot dramas the user has not opened, most recently
-      // listed first so a seen one drops out. Falls back to anything unwatched.
-      const recommendation = React.useMemo(() => {
-        if (feed.items.length === 0) return undefined
-        const seen = new Set(watched.map((row) => row.seriesId))
-        const fresh = feed.items.filter((item) => item && !seen.has(item.id))
-        return fresh[0] ?? feed.items[0]
-      }, [feed.items, watched])
-
-      // Search asks the source itself; the cached list only holds a few dozen
-      // dramas. Typing waits for a pause, Enter searches at once, and a
-      // reply for an older query is dropped.
-      const keyword = query.trim()
+      // Search-found dramas enter history without a poster. Once per session,
+      // ask the Host for the detail and tuck its cover into the record.
       React.useEffect(() => {
-        if (!keyword) {
-          setFound({ status: 'idle', keyword: '', items: [], error: undefined })
-          return undefined
-        }
-        let stale = false
-        setFound((previous) => ({ ...previous, status: 'loading', keyword }))
-        const timer = setTimeout(() => {
-          callApi(`/search?q=${encodeURIComponent(keyword)}`)
+        if (searching) return
+        for (const row of watched) {
+          if (row.cover || feed.items.some((item) => item.id === row.seriesId && item.cover)) continue
+          if (coverTried.has(row.seriesId)) continue
+          coverTried.add(row.seriesId)
+          fetchSeriesDetail(row.seriesId)
             .then((body) => {
-              if (!stale) setFound({ status: 'ready', keyword, items: body.items ?? [], error: undefined })
+              const cover = body?.series?.cover_url
+              if (cover) saveHistoryCover(row.seriesId, cover)
             })
-            .catch((error) => {
-              if (!stale) setFound({ status: 'error', keyword, items: [], error })
-            })
-        }, searchTick > 0 ? 0 : 400)
-        return () => {
-          stale = true
-          clearTimeout(timer)
+            .catch(() => {})
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [keyword, searchTick])
-
-      // Board rows carry no blurb, so the feature card would be all empty
-      // space: pull the drama's own description once and remember it.
-      const [featuredDesc, setFeaturedDesc] = React.useState(undefined)
-      const featuredId = recommendation?.id
-      React.useEffect(() => {
-        if (!featuredId) return undefined
-        if (descCache.has(featuredId)) {
-          setFeaturedDesc(descCache.get(featuredId))
-          return undefined
-        }
-        let cancelled = false
-        callApi(`/series?id=${encodeURIComponent(featuredId)}`)
-          .then((body) => {
-            const desc = String(body?.series?.description ?? '')
-            descCache.set(featuredId, desc)
-            if (!cancelled) setFeaturedDesc(desc)
-          })
-          .catch(() => {})
-        return () => {
-          cancelled = true
-        }
-      }, [featuredId])
+      }, [watched, feed.items, searching, saveHistoryCover])
 
       const PAGE = 12
       const searching = query.trim() !== ''
-      // The featured drama is already on screen; the grid shows the others.
-      const pool = searching
-        ? search.items
-        : feed.items.filter((item) => item && item.id !== recommendation?.id)
+      // The whole board is the list; the history strip above it is the "for you".
+      const pool = searching ? search.items : feed.items
       const pageCount = Math.max(1, Math.ceil(pool.length / PAGE))
       const shownPage = searching ? 0 : page % pageCount
       const visible = pool.slice(shownPage * PAGE, shownPage * PAGE + PAGE)
       /** Next twelve; after the last page, fetch a fresh list and start over. */
       const nextBatch = () => {
         if (shownPage + 1 < pageCount) setPage(shownPage + 1)
-        else if (keyword) setPage(0)
         else {
           setPage(0)
           fetchFeed(true)
@@ -1067,9 +1031,8 @@ window.__ModuleLoader__.load({
               ),
             ),
           )
-        // The home panel reads top to bottom: the one pick for you, then the
-        // dramas you already started as a horizontally scrollable strip, then
-        // the rest of the board you can page.
+        // The home panel reads top to bottom: the dramas you already started
+        // as a horizontally scrollable strip, then the board you can page.
         const feedById = new Map(feed.items.map((item) => [item.id, item]))
         const historySection =
           !searching && watched.length > 0
@@ -1086,7 +1049,6 @@ window.__ModuleLoader__.load({
                   'div',
                   { className: 'hg-history-strip' },
                   watched.map((row) => {
-                    const item = feedById.get(row.seriesId) ?? { id: row.seriesId, title: row.title }
                     const line =
                       row.number === undefined || row.episodeId === undefined
                         ? t('player.historyNew')
@@ -1097,8 +1059,12 @@ window.__ModuleLoader__.load({
                       h(
                         'button',
                         { type: 'button', className: 'hg-history-open', onClick: () => continueWatching(row) },
-                        h('span', { className: 'hg-history-cover' }, h(Cover, { src: item.cover, alt: row.title ?? item.title ?? '' })),
-                        h('span', { className: 'hg-history-name' }, row.title ?? item.title ?? row.seriesId),
+                        h(
+                          'span',
+                          { className: 'hg-history-cover' },
+                          h(Cover, { src: row.cover ?? feedById.get(row.seriesId)?.cover, alt: row.title ?? '' }),
+                        ),
+                        h('span', { className: 'hg-history-name' }, row.title ?? row.seriesId),
                         h('span', { className: 'hg-history-line' }, line),
                       ),
                       h(
@@ -1129,28 +1095,6 @@ window.__ModuleLoader__.load({
         content = h(
           React.Fragment,
           null,
-          recommendation && !searching
-            ? h(
-                'div',
-                { className: 'hg-feature' },
-                h('div', { className: 'hg-feature-head' }, t('player.recommend')),
-                h(
-                  'button',
-                  { type: 'button', className: 'hg-feature-card', onClick: () => openSeries(recommendation) },
-                  h('span', { className: 'hg-feature-cover' }, h(Cover, { src: recommendation.cover, alt: recommendation.title ?? '', big: true })),
-                  h(
-                    'span',
-                    { className: 'hg-feature-copy' },
-                    h('b', null, recommendation.title ?? recommendation.id),
-                    subtitleOf(recommendation) ? h('span', { className: 'hg-sub' }, subtitleOf(recommendation)) : null,
-                    (recommendation.description || featuredDesc)
-                      ? h('span', { className: 'hg-feature-desc' }, recommendation.description || featuredDesc)
-                      : null,
-                    h('span', { className: 'hg-btn primary hg-feature-play' }, h(Icon, { name: 'play', size: 12 }), t('player.watchNow')),
-                  ),
-                ),
-              )
-            : null,
           historySection,
           picksSection,
         )
