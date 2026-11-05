@@ -48,7 +48,7 @@ export async function reflectConfig(raw = {}) {
   let value
   try {
     const { default: z } = await import('@deepseek-ai/schemastery')
-    const result = configSchema(z, DEFAULTS)('~standard').validate(input)
+    const result = configSchema(z, DEFAULTS)['~standard'].validate(input)
     value = 'then' in result ? await result : result.value
     if (result?.issues) throw new Error(result.issues.map((issue) => issue.message).join('; '))
   } catch (error) {
@@ -142,6 +142,8 @@ export function apply(ctx, config = {}) {
   let clientPromise
   let games = []
   let gamesAt = 0
+  /** What the page last said it is playing, for the Host's own surfaces. */
+  let lastActivity
 
   const logger = ctx.logger ?? { info() {}, warn() {}, error() {} }
   const VENDOR_DIR = join(dirname(fileURLToPath(import.meta.url)), 'vendor')
@@ -484,7 +486,10 @@ export function apply(ctx, config = {}) {
     try {
       const bytes = await readFile(join(VENDOR_DIR, name))
       response.statusCode = 200
-      response.setHeader('content-type', name.endsWith('.js') ? 'text/javascript; charset=utf-8' : 'application/octet-stream')
+      // The page imports these files, and a module import is rejected on a MIME
+      // mismatch: `.mjs` is the DASH player's build and must count as script.
+      const type = /\.(?:js|mjs)$/.test(name) ? 'text/javascript; charset=utf-8' : 'application/octet-stream'
+      response.setHeader('content-type', type)
       response.setHeader('cache-control', 'public, max-age=86400')
       response.end(request.method === 'HEAD' ? undefined : bytes)
     } catch {
@@ -575,6 +580,33 @@ export function apply(ctx, config = {}) {
       }
     })()
     return refreshing
+  }
+
+  /** Read a small JSON request body; resolves to undefined when it is not one. */
+  function readJsonBody(request, limit = 16_384) {
+    return new Promise((resolve) => {
+      const chunks = []
+      let size = 0
+      let settled = false
+      const settle = (value) => {
+        if (settled) return
+        settled = true
+        resolve(value)
+      }
+      request.on('data', (chunk) => {
+        size += chunk.length
+        if (size <= limit) chunks.push(chunk)
+      })
+      request.on('end', () => {
+        try {
+          settle(JSON.parse(Buffer.concat(chunks).toString('utf8')))
+        } catch {
+          settle(undefined)
+        }
+      })
+      request.on('error', () => settle(undefined))
+      request.on('aborted', () => settle(undefined))
+    })
   }
 
   async function handleHttp(request, response, url) {
@@ -695,12 +727,23 @@ export function apply(ctx, config = {}) {
       })
     }
 
+    // The page beacons what it is playing; nothing waits on the answer, so keep
+    // the last state and reply empty instead of letting the page log a 404.
+    if (path === '/activity') {
+      if (request.method !== 'POST') return send(405, { ok: false, error: { message: 'method not allowed' } })
+      lastActivity = await readJsonBody(request)
+      response.statusCode = 204
+      response.setHeader('cache-control', 'no-store')
+      return response.end()
+    }
+
     if (path === '/running') {
       const agents = ctx.get('agents')
       const list = agents?.list?.() ?? []
       return json(async () => ({
         running: list.some((agent) => agent?.status === 'running'),
         sessions: list.length,
+        activity: lastActivity ?? null,
       }))
     }
 
