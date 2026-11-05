@@ -195,13 +195,10 @@ window.__ModuleLoader__.load({
 .hg-section-head{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary);margin:0 2px 8px;}
 .hg-more{margin-left:auto;appearance:none;border:0;background:none;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer;padding:2px 5px;border-radius:6px;}
 .hg-more:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2);}
-.hg-history-list{display:flex;flex-direction:column;gap:1px;}
-.hg-history-row{display:flex;align-items:center;gap:4px;}
-.hg-history-main{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;appearance:none;border:0;background:none;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:left;padding:4px 6px;border-radius:6px;cursor:pointer;}
-.hg-history-main:hover{background:var(--dsw-alias-bg-layer-2);}
-.hg-history-title{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.hg-history-sub{color:var(--dsw-alias-label-secondary);font-size:11px;flex:none;font-variant-numeric:tabular-nums;}
-.hg-history-row .hg-dismiss{color:var(--dsw-alias-label-secondary);}
+.hg-history-card{display:flex;align-items:flex-start;gap:2px;margin-bottom:8px;}
+.hg-history-card .hg-feature-card{flex:1;min-width:0;padding:8px;gap:10px;align-items:center;}
+.hg-history-card .hg-feature-cover{width:64px;}
+.hg-history-card .hg-dismiss{flex:none;color:var(--dsw-alias-label-secondary);}
 .hg-veil .hg-note{color:rgba(255,255,255,.75);max-width:240px;}
 .hg-veil.notice{background:rgba(0,0,0,.6);font-size:13px;line-height:1.5;}
 .hg-big{font-size:30px;font-weight:600;color:#fff;}
@@ -979,7 +976,6 @@ window.__ModuleLoader__.load({
               },
               h(Icon, { name: 'search' }),
             ),
-        series || searchOpen ? null : h('button', { className: 'hg-btn', type: 'button', onClick: nextBatch, disabled: feed.status === 'loading' || searching }, t('player.refresh')),
       )
 
       let content
@@ -1005,6 +1001,7 @@ window.__ModuleLoader__.load({
           )
         // The home panel reads top to bottom: the one pick for you, then the
         // dramas you already started, then the rest of the board you can page.
+        const feedById = new Map(feed.items.map((item) => [item.id, item]))
         const historyRows = watched.slice(0, showAllHistory ? watched.length : 5)
         const historySection =
           !searching && watched.length > 0
@@ -1024,39 +1021,48 @@ window.__ModuleLoader__.load({
                       )
                     : null,
                 ),
-                h(
-                  'div',
-                  { className: 'hg-history-list' },
-                  historyRows.map((row) =>
+                historyRows.map((row) => {
+                  const item = feedById.get(row.seriesId) ?? { id: row.seriesId, title: row.title }
+                  const line =
+                    row.number === undefined || row.episodeId === undefined
+                      ? t('player.historyNew')
+                      : t('player.historyLine').replace('{n}', String(row.number)).replace('{t}', formatTime(row.position))
+                  return h(
+                    'div',
+                    { key: row.seriesId, className: 'hg-history-card' },
                     h(
-                      'div',
-                      { key: row.seriesId, className: 'hg-history-row' },
+                      'button',
+                      { type: 'button', className: 'hg-feature-card', onClick: () => continueWatching(row) },
+                      h('span', { className: 'hg-feature-cover' }, h(Cover, { src: item.cover, alt: item.title ?? '', big: true })),
                       h(
-                        'button',
-                        { type: 'button', className: 'hg-history-main', onClick: () => continueWatching(row) },
-                        h('span', { className: 'hg-history-title' }, row.title ?? row.seriesId),
-                        h(
-                          'span',
-                          { className: 'hg-history-sub' },
-                          row.number === undefined || row.episodeId === undefined
-                            ? t('player.historyNew')
-                            : t('player.historyLine').replace('{n}', String(row.number)).replace('{t}', formatTime(row.position)),
-                        ),
-                      ),
-                      h(
-                        'button',
-                        { type: 'button', className: 'hg-dismiss', title: t('player.forget'), 'aria-label': t('player.forget'), onClick: () => forget(row.seriesId) },
-                        '\u00d7',
+                        'span',
+                        { className: 'hg-feature-copy' },
+                        h('b', null, row.title ?? item.title ?? row.seriesId),
+                        h('span', { className: 'hg-sub' }, line),
+                        item.score ? h('span', { className: 'hg-sub' }, item.score) : null,
+                        h('span', { className: 'hg-btn primary hg-feature-play' }, h(Icon, { name: 'play', size: 12 }), t('player.resume')),
                       ),
                     ),
-                  ),
-                ),
+                    h(
+                      'button',
+                      { type: 'button', className: 'hg-dismiss', title: t('player.forget'), 'aria-label': t('player.forget'), onClick: () => forget(row.seriesId) },
+                      '\u00d7',
+                    ),
+                  )
+                }),
               )
             : null
         const picksSection = h(
           'div',
           { className: 'hg-section' },
-          h('div', { className: 'hg-section-head' }, t(searching ? 'player.results' : 'player.picks')),
+          h(
+            'div',
+            { className: 'hg-section-head' },
+            t(searching ? 'player.results' : 'player.picks'),
+            searching
+              ? null
+              : h('button', { type: 'button', className: 'hg-more', onClick: nextBatch, disabled: feed.status === 'loading' }, t('player.refresh')),
+          ),
           grid,
         )
         content = h(
